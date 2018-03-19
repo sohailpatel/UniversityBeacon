@@ -4,6 +4,7 @@ package json.parser;
  * Created by sohailpatel on 3/11/18.
  */
 
+import java.sql.Connection;
 import org.jsoup.nodes.Document;
 import org.jsoup.Jsoup;
 import org.jsoup.select.Elements;
@@ -12,6 +13,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 
+import mysql.ProcedureCall;
 import mysql.SQLConnection;
 
 public class GetJsonObject {
@@ -61,6 +63,7 @@ public class GetJsonObject {
         GetJsonObject jp = new GetJsonObject();
         ParseJson parseJson = new ParseJson();
         SQLConnection sqlConnection = new SQLConnection();
+        Connection connection;
         String url = "http://ella.ils.indiana.edu/~szpatel/beacon_websites/html/attendance.html", type = null;
         JSONObject jsonObject = jp.getJsonObject(url);
         type = parseJson.getJSONString(jsonObject, "type");
@@ -69,8 +72,11 @@ public class GetJsonObject {
             System.out.println(jsonObject);
         }
         else {
-            sqlConnection.getConnection(parseJson.getJSONString(jsonObject, "data"));
+            String beaconName = parseJson.getJSONString(jsonObject, "data");
+            connection = sqlConnection.getConnection();
             System.out.println("SQL Call");
         }
+        ProcedureCall procedureCall = new ProcedureCall();
+        procedureCall.callStoredProcedure();
     }
 }

@@ -9,11 +9,11 @@ import java.sql.SQLException;
 
 public class SQLConnection {
 
-    public void getConnection(String beaconName){
+    public Connection getConnection(){
+        Connection connection = null;
         try {
             Class.forName("com.mysql.jdbc.Driver").newInstance();
-            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/university_beacon?" + "user=root&password=root");
-            System.out.println(connection);
+            connection = DriverManager.getConnection("jdbc:mysql://localhost/university_beacon?" + "user=root&password=root");
         }
         catch (ClassNotFoundException ex) {
             ex.printStackTrace();
@@ -27,5 +27,6 @@ public class SQLConnection {
         catch (SQLException ex){
             ex.printStackTrace();
         }
+        return connection;
     }
 }
