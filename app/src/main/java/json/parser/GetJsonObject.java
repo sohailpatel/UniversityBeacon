@@ -5,6 +5,8 @@ package json.parser;
  */
 
 import java.sql.Connection;
+import java.util.HashMap;
+
 import org.jsoup.nodes.Document;
 import org.jsoup.Jsoup;
 import org.jsoup.select.Elements;
@@ -13,7 +15,9 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 
+import mysql.ClassSql;
 import mysql.ProcedureCall;
+import mysql.RoleByID;
 import mysql.SQLConnection;
 
 public class GetJsonObject {
@@ -63,20 +67,40 @@ public class GetJsonObject {
         GetJsonObject jp = new GetJsonObject();
         ParseJson parseJson = new ParseJson();
         SQLConnection sqlConnection = new SQLConnection();
-        Connection connection;
+        RoleByID roleByID = new RoleByID();
+        ClassSql classSql =new ClassSql();
+        Connection connection = null;
+        HashMap<String,String> classDetails = new HashMap<String, String>();
         String url = "http://ella.ils.indiana.edu/~szpatel/beacon_websites/html/attendance.html", type = null;
+        //String emailId = "randall@iu.edu";
+        String emailId = "szpatel@iu.edu";
         JSONObject jsonObject = jp.getJsonObject(url);
         type = parseJson.getJSONString(jsonObject, "type");
+
+        //ProcedureCall procedureCall = new ProcedureCall();
+        //procedureCall.callStoredProcedure();
+
         if(type.equalsIgnoreCase(JSON)) {
             jsonObject = parseJson.getJSONObject(jsonObject, "data");
             System.out.println(jsonObject);
         }
         else {
-            String beaconName = parseJson.getJSONString(jsonObject, "data");
+            JSONObject dataObject = parseJson.getJSONObject(jsonObject, "data");
+            String beaconName = parseJson.getJSONString(dataObject, "class_room");
             connection = sqlConnection.getConnection();
-            System.out.println("SQL Call");
+            System.out.println("SQL Call"+connection);
+            classDetails = classSql.getClassId(connection, beaconName);
+            if(roleByID.isProfessor(connection, emailId, classDetails)){
+                System.out.println("Prof");
+                classSql.classStarted(connection, roleByID.getProfId(connection, emailId), classDetails);
+            }
+            else if(roleByID.isStudent(connection, emailId, classDetails)){
+                System.out.println("Student");
+                classSql.markStudentAttendance(connection, roleByID.getStudentId(connection, emailId), classDetails);
+            }
+            else {
+                System.out.println("Id not present");
+            }
         }
-        ProcedureCall procedureCall = new ProcedureCall();
-        procedureCall.callStoredProcedure();
     }
 }
